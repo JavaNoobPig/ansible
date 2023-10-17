@@ -1,0 +1,88 @@
+---
+- name: Wait for ssh connection
+  hosts: all
+  gather_facts: False
+  tasks:
+    - name: Ensure ssh port open
+      wait_for:
+        port: 22
+        delay: 10
+        timeout: 200
+        search_regex: OpenSSH
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: /usr/bin/python
+
+- name: Install Python3,docker,docker-compose,docker python module
+  hosts: all
+  become: yes
+  gather_facts: False
+  tasks:
+    - name: Install python3 and docker
+      vars:
+        ansible_python_interpreter: /usr/bin/python
+      yum:
+        name: 
+          - python3
+          - docker
+        update_cache: yes
+        state: present
+        lock_timeout: 180
+    - name: Install Docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-{{lookup('pipe', 'uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Start docker daemon
+      systemd:
+        name: docker
+        state: started
+    - name: Install urllib3
+      pip:
+        name: urllib3==1.26.6
+    - name: Install docker python module
+      pip:
+        name: 
+          - docker
+          - docker-compose
+       
+  
+- name: Create new linux user
+  hosts: all
+  become: yes
+  vars_files:
+    - project-vars  
+  tasks:
+    - name: Create new linux user
+      user:
+        name: nana
+        groups: "{{user_groups}}"
+
+
+- name: Start docker containers
+  hosts: all
+  become: yes
+  become_user: nana
+  vars_files:
+    - project-vars
+#  vars_prompt:
+#    - name: docker_password
+#      prompt: Enter password for docker registry
+  tasks:
+    - name: Copy docker compose
+      copy:
+        src: /home/ubuntu/ansible/docker-compose-full.yaml
+        dest: /home/nana/docker-compose.yaml
+    #- name: Docker login
+    #  docker_login:
+    #    registry_url: https://index.docker.io/v1
+    #    username: nanajanashia
+    #    password: "{{docker_password}}"
+    - name: Start container from compose
+      docker_compose:
+        project_src: /home/nana
+        state: present #<-default like docker-compose up
+     
+     
+

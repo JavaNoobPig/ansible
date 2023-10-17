@@ -1,0 +1,52 @@
+---
+- name: Install node and npm
+  hosts: 157.245.194.221
+  tasks:
+    - name: Update apt repo and cache
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+    - name: Install nodejs and npm
+      apt:
+        pkg:
+          - nodejs
+          - npm
+- name: Create new linux user for node app
+  hosts: 157.245.194.221
+  vars_files:
+    - project-vars
+  tasks:
+    - name: Create linux user
+      user:
+        name: "{{linux_name}}"
+        comment: Pig Admin
+        group: admin
+
+- name: Deploy nodejs app
+  hosts: 157.245.194.221
+  become: True
+  become_user: "{{linux_name}}"
+  vars_files:
+    - project-vars
+  tasks:
+    - name: Unpack the nodejs file
+      unarchive:
+        src: "{{location}}/nodejs-app-{{version}}.tgz"
+        dest: "{{user_home_dir}}"
+    - name: Install dependencies
+      npm:
+        path: "{{user_home_dir}}/package"
+    - name: kill previous process if exist
+      command:
+         chdir: "{{user_home_dir}}/package/app"
+         cmd: sh -c "kill $(ps aux | grep 'node server'|grep -v 'grep' | awk '{print $2}') || true"
+      async: 50
+      poll: 0
+    - name: Start the application
+      command:
+         chdir: /home/pig/package/app
+         cmd: sh -c "nohup node server &"
+      async: 50
+      poll: 0
+    - name: Ensure app is running
+      shell: ps aux| grep node
+      register: app_status
+    - debug: msg={{app_status.stdout_lines}}
