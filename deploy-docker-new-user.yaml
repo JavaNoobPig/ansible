@@ -12,7 +12,7 @@
         host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
       vars:
         ansible_connection: local
-        ansible_python_interpreter: /usr/bin/python
+        ansible_python_interpreter: /usr/bin/python3
 
 - name: Install Python3,docker,docker-compose,docker python module
   hosts: all
@@ -83,6 +83,3 @@
       docker_compose:
         project_src: /home/nana
         state: present #<-default like docker-compose up
-     
-     
-
