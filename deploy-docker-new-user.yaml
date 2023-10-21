@@ -1,6 +1,6 @@
 ---
 - name: Wait for ssh connection
-  hosts: all
+  hosts: tag_Name_dev_server
   gather_facts: False
   tasks:
     - name: Ensure ssh port open
@@ -15,7 +15,7 @@
         ansible_python_interpreter: /usr/bin/python3
 
 - name: Install Python3,docker,docker-compose,docker python module
-  hosts: all
+  hosts: tag_Name_dev_server
   become: yes
   gather_facts: False
   tasks:
@@ -49,7 +49,7 @@
        
   
 - name: Create new linux user
-  hosts: all
+  hosts: tag_Name_dev_server
   become: yes
   vars_files:
     - project-vars  
@@ -61,7 +61,7 @@
 
 
 - name: Start docker containers
-  hosts: all
+  hosts: tag_Name_dev_server
   become: yes
   become_user: nana
   vars_files:

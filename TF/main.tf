@@ -10,11 +10,14 @@ variable "my_ip" {}
 variable "instance_type" {}
 variable "public_key_location" {}
 variable "controller_ip" {}
-variable "ssh_key_private" {}
+
 
 
 resource "aws_vpc" "myapp-vpc" {
   cidr_block = var.vpc_cidr_block
+  #在private IP可以溝通情況下,增加以下兩個設定讓private DNS可以解析到private IP
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags = {
     Name : "${var.env_prefix}-vpc"
   }
@@ -62,8 +65,15 @@ resource "aws_default_security_group" "default-sg" {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_ip]
   }
+  #主要允許相同VPC機台間private IP可以溝通
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }  
 
   egress {
     from_port       = 0
@@ -105,7 +115,7 @@ resource "aws_key_pair" "ssh-key" {
 
 resource "aws_instance" "myapp-server" {
   ami           = data.aws_ami.latest-amazon-linux-image.id
-  instance_type = var.instance_type
+  instance_type = "t2.micro"
 
   subnet_id              = aws_subnet.myapp-subnet-1.id
   vpc_security_group_ids = [aws_default_security_group.default-sg.id]
@@ -114,25 +124,63 @@ resource "aws_instance" "myapp-server" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.ssh-key.key_name
 
-  //user_data = file("entry-script.sh")
   tags = {
-    Name : "${var.env_prefix}-server"
+    //Name : "${var.env_prefix}-server"
+    //Environment : "dev"
+    Name : "dev-server"
   }
-
-  //provisioner "local-exec" {
-    //working_dir = "/home/ubuntu/ansible"
-    //command = "ansible-playbook --inventory ${self.public_ip}, --private-key ${var.ssh_key_private} --user ec2-user deploy-docker-new-user.yaml"
-  //}
 }
 
-resource "null_resource" "configure_server" {
-  triggers = { #多筆
-    trigger = aws_instance.myapp-server.public_ip
-  }
+resource "aws_instance" "myapp-server-two" {
+  ami           = data.aws_ami.latest-amazon-linux-image.id
+  instance_type = "t2.micro"
 
-  provisioner "local-exec" {
-    working_dir = "/home/ubuntu/ansible"
-    command = "ansible-playbook --inventory ${aws_instance.myapp-server.public_ip}, --private-key ${var.ssh_key_private} --user ec2-user deploy-docker-new-user.yaml"
-  }
+  subnet_id              = aws_subnet.myapp-subnet-1.id
+  vpc_security_group_ids = [aws_default_security_group.default-sg.id]
+  availability_zone      = var.avail_zone
 
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.ssh-key.key_name
+
+  tags = {
+    //Name : "${var.env_prefix}-server-two"
+    //Environment : "dev"
+    Name : "dev-server"
+  }
+}
+
+resource "aws_instance" "myapp-server-three" {
+  ami           = data.aws_ami.latest-amazon-linux-image.id
+  instance_type = "t2.small"
+
+  subnet_id              = aws_subnet.myapp-subnet-1.id
+  vpc_security_group_ids = [aws_default_security_group.default-sg.id]
+  availability_zone      = var.avail_zone
+
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.ssh-key.key_name
+
+  tags = {
+    //Name : "${var.env_prefix}-server-three"
+    //Environment : "dev"
+    Name : "prod-server"
+  }
+}
+
+resource "aws_instance" "myapp-server-four" {
+  ami           = data.aws_ami.latest-amazon-linux-image.id
+  instance_type = "t2.small"
+
+  subnet_id              = aws_subnet.myapp-subnet-1.id
+  vpc_security_group_ids = [aws_default_security_group.default-sg.id]
+  availability_zone      = var.avail_zone
+
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.ssh-key.key_name
+
+  tags = {
+    //Name : "${var.env_prefix}-server-four"
+    //Environment : "dev"
+    Name : "prod-server"
+  }
 }
