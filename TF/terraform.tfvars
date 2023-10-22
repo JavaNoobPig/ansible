@@ -1,8 +1,3 @@
-vpc_cidr_block      = "10.0.0.0/16"
-subnet_cidr_block   = "10.0.10.0/24"
-avail_zone          = "ap-northeast-1a"
-env_prefix          = "dev-Ansible-target"
-my_ip               = "{我的電腦IP}/32"
-controller_ip       = "{主控機IP}/32"
-instance_type       = "t2.micro"
-public_key_location = "/home/ubuntu/.ssh/id_rsa.pub"
+vpc_cidr_block = "10.0.0.0/16"
+private_subnet_cide_blocks = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnet_cidr_blocks = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
