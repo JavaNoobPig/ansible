@@ -1,0 +1,8 @@
+vpc_cidr_block      = "10.0.0.0/16"
+subnet_cidr_block   = "10.0.10.0/24"
+avail_zone          = "ap-northeast-1a"
+env_prefix          = "Ansible-hosts"
+my_ip               = "{我個人電腦IP}/32"
+controller_ip       = "{Ansible主控機IP}/32"
+instance_type       = "t2.micro"
+public_key_location = "/home/ubuntu/.ssh/id_rsa.pub"
