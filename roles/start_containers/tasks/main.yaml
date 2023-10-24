@@ -2,11 +2,11 @@
   copy:
     src: docker-compose-full.yaml
     dest: /home/nana/docker-compose.yaml
-#- name: Docker login
-#  docker_login:
-#    registry_url: https://index.docker.io/v1
-#    username: nanajanashia
-#    password: "{{docker_password}}"
+- name: Docker login
+  docker_login:
+    registry_url: "{{ docker_registry }}"
+    username: "{{ docker_username }}"
+    password: "{{docker_password}}"
 - name: Start container from compose
   docker_compose:
     project_src: /home/nana

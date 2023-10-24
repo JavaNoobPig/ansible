@@ -51,8 +51,10 @@
 - name: Create new linux user
   hosts: tag_Name_dev_server
   become: yes
-  vars_files:
-    - project-vars  
+  #vars_files:
+  #  - project-vars
+  vars:
+    user_groups: adm,docker
   roles:
     - create_user
 
